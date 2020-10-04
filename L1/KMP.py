@@ -48,7 +48,7 @@ while True:
     if position == -1:
         break
 
-    print(f"Pattern starts at position: {position if position is counter else counter}\nHere is visualization of found pattern: {(lowered + text[:position]).lower() + text[position:position+len(pattern)] + text[position + len(pattern):].lower()}\n")
+    print(f"Pattern starts at position: {position if position is counter else counter}\nHere is visualization of found pattern in text: {(lowered + text[:position]).lower() + text[position:position+len(pattern)] + text[position + len(pattern):].lower()}\n")
     lowered += text[position + 1]
     text = text[position + 1:]
     counter += 1
