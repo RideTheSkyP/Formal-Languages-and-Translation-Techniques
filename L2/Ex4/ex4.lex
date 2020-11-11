@@ -92,13 +92,13 @@
 %x ERROR
 
 %%
--?[0-9]+        push(atoi(yytext));
-\+				{ add(); if(error) BEGIN(ERROR);}
-\-				{ subtract(); if (error) BEGIN(ERROR); }
-\*				{ multiply(); if (error) BEGIN(ERROR); }
-\/             	{	int divisor = pop();
-                 	if (divisor == 0) 
-                 	{
+-?[0-9]+		push(atoi(yytext));
+"+"				{ add(); if(error) BEGIN(ERROR);}
+"-"				{ subtract(); if (error) BEGIN(ERROR); }
+"*"				{ multiply(); }
+"/"         	{	int divisor = pop();
+				 	if (divisor == 0) 
+				 	{
 					 	printf("Division by 0\n");
 					 	BEGIN(ERROR);
 					} 
@@ -108,19 +108,19 @@
 					}
 					if (error) BEGIN(ERROR);
 				}
-\%             	{
-                    int divisor = pop();
-                    if (divisor == 0) {
-                        printf("Division by 0\n");
-                        BEGIN(ERROR);
-                    }
-                    else 
-                    {
-                        mod(divisor);
-                    }
-                    if (error) BEGIN(ERROR);
-                }
-\^             	power();
+"%"         	{
+			        int divisor = pop();
+			        if (divisor == 0) {
+			            printf("Division by 0\n");
+			            BEGIN(ERROR);
+			        }
+			        else 
+			        {
+			            mod(divisor);
+			        }
+			        if (error) BEGIN(ERROR);
+				}
+"^"             power();
 \n            	result();
 [^[:blank:]]    {printf("This symbol is not allowed: %s\n", yytext); error = true;};
 [[:blank:]]     ;
