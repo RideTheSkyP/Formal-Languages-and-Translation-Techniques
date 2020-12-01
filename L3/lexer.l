@@ -1,5 +1,5 @@
 %{
-	#include "gram.tab.h"
+	#include "parser.tab.h"
 	extern int yylval;
 %}
 
@@ -8,11 +8,11 @@ COMMENT 	^#.*(\\\n)*.*\n
 %%
 {COMMENT}   	;
 [0-9]+ 	{ yylval=atoi(yytext); return NUM; }
-"+"		{return ADD;}
-"-"		{return SUB;}
-"*"		{return MUL;}
-"/"		{return DIV;}
-"^"		{return POW;}
+"+"		return ADD;
+"-"		return SUB;
+"*"		return MUL;
+"/"		return DIV;
+"^"		return POW;
 \n      	return EOF;
 .       	return *yytext;
 %%
