@@ -1,19 +1,15 @@
 import math
-
 from sly import Lexer, Parser
 
 BASE = 1234577
 
 
 class CalcLexer(Lexer):
-	tokens = {NAME, NUMBER, ADD, MUL, SUB, DIV, POWER, ASSIGN, LPAREN, RPAREN}
+	tokens = {NUMBER, ADD, MUL, SUB, DIV, POWER, ASSIGN, LPAREN, RPAREN}
 	ignore = " \t"
 
-	# Tokens
-	NAME = r"[a-zA-Z_][a-zA-Z0-9_]*"
 	NUMBER = r"\d+"
 
-	# Special symbols
 	ADD = r"\+"
 	SUB = r"-"
 	MUL = r"\*"
@@ -22,6 +18,8 @@ class CalcLexer(Lexer):
 	ASSIGN = r"="
 	LPAREN = r"\("
 	RPAREN = r"\)"
+
+	ignore_comment = r'\#.*'
 
 	def error(self, t):
 		print(f"Illegal character {t.value[0]}")
@@ -39,38 +37,43 @@ class CalcParser(Parser):
 	)
 
 	def __init__(self):
-		self.names = {}
-
-	@_("NAME ASSIGN expr")
-	def statement(self, p):
-		self.names[p.NAME] = p.expr
+		self.postfixString = ""
 
 	@_("expr")
 	def statement(self, p):
-		print(f"= {p.expr % BASE}")
+		print(f"{self.postfixString}\n= {p.expr % BASE}")
+		self.postfixString = ""
 
 	@_("expr ADD expr")
 	def expr(self, p):
+		self.postfixString += "+ "
 		return p.expr0 + p.expr1
 
 	@_("expr SUB expr")
 	def expr(self, p):
+		self.postfixString += "- "
 		return p.expr0 - p.expr1
 
 	@_("expr MUL expr")
 	def expr(self, p):
+		self.postfixString += "* "
 		return p.expr0 * p.expr1
 
 	@_("expr DIV expr")
 	def expr(self, p):
+		self.postfixString += "/ "
 		return modDivide(p.expr0, p.expr1)
 
 	@_("expr POWER expr")
 	def expr(self, p):
+		self.postfixString += "^ "
 		return p.expr0 ** p.expr1
 
 	@_("SUB expr %prec USUB")
 	def expr(self, p):
+		words = self.postfixString.split()
+		self.postfixString = " ".join(words[:-1])
+		self.postfixString += f" {-p.expr % BASE} "
 		return -p.expr % BASE
 
 	@_("LPAREN expr RPAREN")
@@ -79,15 +82,8 @@ class CalcParser(Parser):
 
 	@_("NUMBER")
 	def expr(self, p):
+		self.postfixString += f"{p.NUMBER} "
 		return int(p.NUMBER) % BASE
-
-	@_("NAME")
-	def expr(self, p):
-		try:
-			return self.names[p.NAME]
-		except LookupError:
-			print(f"Undefined name {p.NAME!r}")
-			return 0
 
 
 def modInverse(b):
@@ -110,10 +106,11 @@ def modDivide(a, b):
 if __name__ == "__main__":
 	lexer = CalcLexer()
 	parser = CalcParser()
+	text = ""
 	while True:
 		try:
-			text = input("calc > ")
+			text = input("")
 		except EOFError:
-			break
+			print("Error")
 		if text:
 			parser.parse(lexer.tokenize(text))
