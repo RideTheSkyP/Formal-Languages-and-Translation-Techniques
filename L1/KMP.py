@@ -1,55 +1,50 @@
-import sys
-
-# Knuth–Morris–Pratt algorithm
+import argparse
 
 
-def createTable(pattern):
-    patternLength = len(pattern)
-    table = [0] * patternLength
-    pos = table[0] = -1
+def computeLongestPrefixSuffix(pattern):
+    longestPrefixSuffix = [0] * len(pattern)
 
-    for i in range(patternLength):
-        while (pos > -1) and (pattern[pos] is not pattern[i - 1]):
-            pos = table[pos]
+    prefixPointer = 0
+    for index in range(1, len(pattern)):
+        while prefixPointer and pattern[index] != pattern[prefixPointer]:
+            prefixPointer = longestPrefixSuffix[prefixPointer - 1]
 
-        pos += 1
-
-        if (i is patternLength) or (pattern[i] is not pattern[pos]):
-            table[i] = pos
-        else:
-            table[i] = table[pos]
-
-    return table
+        if pattern[prefixPointer] == pattern[index]:
+            prefixPointer += 1
+            longestPrefixSuffix[index] = prefixPointer
+    return longestPrefixSuffix
 
 
-def kmpSearch(text, pattern):
-    table = createTable(pattern)
-    pos = 0
+def kmpSearch(pattern, text):
+    positions = []
+    longestPrefixSuffix = computeLongestPrefixSuffix(pattern)
 
-    for i in range(len(text)):
-        while (pos > -1) and (pattern[pos] is not text[i]):
-            pos = table[pos]
+    currentPatternIndex = 0
+    for index, character in enumerate(text):
+        while currentPatternIndex and pattern[currentPatternIndex] != character:
+            currentPatternIndex = longestPrefixSuffix[currentPatternIndex - 1]
 
-        pos += 1
+        if pattern[currentPatternIndex] == character:
+            if currentPatternIndex == len(pattern) - 1:
+                positions.append(index - currentPatternIndex)
+                currentPatternIndex = longestPrefixSuffix[currentPatternIndex]
+            else:
+                currentPatternIndex += 1
+    return positions
 
-        if pos is len(pattern):
-            return i - len(pattern) + 1
-    return -1
+
+def parseFile(filename):
+    with open(filename, "r") as f:
+        return "".join(f.readlines())
 
 
-pattern = sys.argv[1]
-text = sys.argv[2]
-position, counter = 0, 0
-lowered = ""
+def main():
+    parser = argparse.ArgumentParser(description="Finite Automata")
+    parser.add_argument("pattern", help="Pattern we want to find in file.")
+    parser.add_argument("filename", help="Filename.")
+    args = parser.parse_args()
+    print(kmpSearch(args.pattern, parseFile(args.filename)))
 
-while True:
-    position = kmpSearch(text, pattern)
 
-    if position == -1:
-        break
-
-    print(f"Pattern starts at position: {position if position is counter else counter}\nHere is visualization of found pattern in text: {(lowered + text[:position]).lower() + text[position:position+len(pattern)] + text[position + len(pattern):].lower()}\n")
-    lowered += text[position + 1]
-    text = text[position + 1:]
-    counter += 1
-
+if __name__ == "__main__":
+    main()
